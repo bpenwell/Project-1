@@ -4,10 +4,6 @@
 #include <cstdlib>
 #include <string>
 
-//sdlkjgj
-///hihihi
-///ll
-
 using namespace std;
 
 //Created by Ben Penwell and Adam <last name>
