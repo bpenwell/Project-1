@@ -4,13 +4,9 @@
 #include <cstdlib>
 #include <string>
 
-//sdlkjgj
-///hihihi
-///ll
-
 using namespace std;
 
-//Created by Ben Penwell and Adam <last name>
+//Created by Ben Penwell and Adam Landis
 //Pattern Recognition, Project 1
 //Feb. 12, 2019
 float ranf();
