@@ -18,16 +18,17 @@ float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
 
 int main(){
-	srand (time(NULL));
 
 	string outputFile;
 	float mean, var;
 	double array[100000][2];
 
 	int input;
-	cout << "Select 1 to generate datapoints: " << endl;
+	cout << "Select 1 to generate datapoints, select 2 to run the bayes classifier: " << endl;
 	cin >> input;
 	if(input==1){
+		//srand (time(NULL));
+
 		generatePairs(1,1,array);
 		//plotdata x,y;
 		for (int i = 0; i < 100000; ++i)
@@ -36,6 +37,7 @@ int main(){
 		}
 		//plot(x,y);
 	}
+	
 
 }
 
