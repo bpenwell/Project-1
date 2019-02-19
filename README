@@ -1,0 +1,7 @@
+in order to compile this program, you must type the following command to install eigen3:
+
+sudo apt-get install libeigen3-dev
+
+Once this is done, type the following to compile:
+
+g++ main.cpp -o main
