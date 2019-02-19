@@ -137,8 +137,8 @@ void generatePairs(float mean, float variance, double valuePair[][2]){
 	for (int i = 0; i < 100000; ++i)
 	{
 		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean,variance);
-		valuePair[i][1] = box_muller(mean,variance);
+		valuePair[i][0] = box_muller(mean,sqrt(variance));
+		valuePair[i][1] = box_muller(mean,sqrt(variance));
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
