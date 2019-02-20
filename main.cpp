@@ -7,7 +7,6 @@
 #include <math.h>
 
 using Eigen::MatrixXd;
-
 using namespace std;
 
 //Created by Ben Penwell and Adam Landis
@@ -19,8 +18,8 @@ void generatePairs(float mean, float variance, double array[][2]);
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance, float probability);
 
-int main(){
-
+int main()
+{
 	string outputFile;
 	float mean, var;
 	double array[100000][2];
@@ -30,7 +29,7 @@ int main(){
 		cout << "Select 1 to generate new datapoints for part 1, select 2 to run data on existing data, -1 to exit: ";
 		cin >> input;
 		if(input==1){
-			srand (time(NULL));
+			srand(42);
 			
 			cout << "Generating data for mean1_var1." << endl;
 			float meanTemp=1.0;
@@ -90,7 +89,7 @@ int main(){
 			classifiedAs_i = 0;
 			classifiedAs_j = 0;
 
-			cout << endl << "Runnning first dataset (mean4_var1): " << endl << endl;
+			cout << endl << "Runnning second dataset (mean4_var1): " << endl << endl;
 			while(!fin_G2.eof()){
 				fin_G2 >> x >> y;
 				xVector(0,0)=x;
@@ -157,8 +156,8 @@ void generatePairs(float mean, float variance, double valuePair[][2]){
 	for (int i = 0; i < 100000; ++i)
 	{
 		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean,variance);
-		valuePair[i][1] = box_muller(mean,variance);
+		valuePair[i][0] = box_muller(mean,sqrt(variance));
+		valuePair[i][1] = box_muller(mean,sqrt(variance));
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
