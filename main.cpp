@@ -46,11 +46,11 @@ int main()
 
 			float meanTemp = 1.0;
 			float varTemp  = 1.0;
-			generatePairs(meanTemp,varTemp,array);
+			generatePairs(meanTemp, varTemp, array);
 			
 			//Generate mean4_var1
 			meanTemp = 4.0;
-			generatePairs(meanTemp,varTemp,array);
+			generatePairs(meanTemp, varTemp, array);
 		}
 		else if (input == "2")
 		{
@@ -85,8 +85,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0,0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0,0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
 
 				float temp = g1Value(0,0) - g2Value(0,0);
 
@@ -189,8 +189,8 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
 		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean,sqrt(variance));
-		valuePair[i][1] = box_muller(mean,sqrt(variance));
+		valuePair[i][0] = box_muller(mean, sqrt(variance));
+		valuePair[i][1] = box_muller(mean, sqrt(variance));
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
@@ -230,7 +230,7 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix,
 
 	MatrixXd g_i_part1 = w_i.transpose()*x_Matrix;
 */
-	MatrixXd g_i = (-1/(2*variance*variance))*(x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean);
+	MatrixXd g_i = (-1/(2*variance))*(x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean);
 	g_i(0,0) += log(probability);
 	//add + ln(P_wi)
 
