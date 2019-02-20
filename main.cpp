@@ -29,16 +29,16 @@ int main()
 	string outputFile;
 	float mean, var;
 	double array[NUM_SAMPLES][2];
-	int input;
+	string input;
 
-	while (input != -1)
+	while (input != "-1")
 	{
 		cout << "Select 1 to generate new datapoints for part 1"
 		     << "select 2 to run data on existing data, -1 to exit: ";
 
 		cin >> input;
 
-		if (input == 1)
+		if (input == "1")
 		{
 			srand(SEED);
 			
@@ -52,7 +52,7 @@ int main()
 			meanTemp = 4.0;
 			generatePairs(meanTemp,varTemp,array);
 		}
-		else if (input == 2)
+		else if (input == "2")
 		{
 			//Set mean matrix G1
 			MatrixXd meanMatrix_G1(2,1);
@@ -141,6 +141,10 @@ int main()
 				 << ". G(x) < 0 (Decide y [Correctly identified]): " 
 				 << classifiedAs_j 
 				 << ".\n";
+		}
+		else if (input != "-1")
+		{
+			cout << "\"" << input << "\" is not a valid command" << endl;
 		}
 	}	
 }
