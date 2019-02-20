@@ -17,7 +17,7 @@ float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
 void useBayesianClassifier(string dataFile);
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance);
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance, float probability);
 
 int main(){
 
@@ -71,8 +71,8 @@ int main(){
 				xVector(1,0)=y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0,0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0,0.8);
 
 				float temp = g1Value(0,0)-g2Value(0,0);
 
@@ -97,8 +97,8 @@ int main(){
 				xVector(1,0)=y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0,0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0,0.8);
 
 				float temp = g1Value(0,0)-g2Value(0,0);
 
@@ -157,8 +157,8 @@ void generatePairs(float mean, float variance, double valuePair[][2]){
 	for (int i = 0; i < 100000; ++i)
 	{
 		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean,sqrt(variance));
-		valuePair[i][1] = box_muller(mean,sqrt(variance));
+		valuePair[i][0] = box_muller(mean,variance);
+		valuePair[i][1] = box_muller(mean,variance);
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
@@ -183,8 +183,8 @@ void useBayesianClassifier(string dataFile){
 
 }
 
-//matrix
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance){
+//passes input values x_Matrix, mean matrix, variance matrix, and probability P(wi)
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance, float probability){
 /*
 	MatrixXd w_i = (1/variance*variance)*mean;
 	cout << (1/variance*variance)*mean << endl;
@@ -194,6 +194,9 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float va
 	MatrixXd g_i_part1 = w_i.transpose()*x_Matrix;
 */
 	MatrixXd g_i = (-1/(2*variance*variance))*(x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean);
+	g_i(0,0) += log(probability);
+	//add + ln(P_wi)
+
 	/*cout << "x_Matrix.transpose()*x_Matrix: " << x_Matrix.transpose()*x_Matrix << endl;
 	cout << "2*mean.transpose()*x_Matrix + mean.transpose()*mean: " << 2*mean.transpose()*x_Matrix + mean.transpose()*mean << endl;
 
