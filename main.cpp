@@ -9,6 +9,9 @@
 using Eigen::MatrixXd;
 using namespace std;
 
+const unsigned int SEED = 42;
+const unsigned int NUM_SAMPLES = 100000;
+
 //Created by Ben Penwell and Adam Landis
 //Pattern Recognition, Project 1
 //Feb. 12, 2019
@@ -16,31 +19,41 @@ float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
 void useBayesianClassifier(string dataFile);
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance, float probability);
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, 
+									  MatrixXd mean, 
+									  float variance, 
+									  float probability);
 
 int main()
 {
 	string outputFile;
 	float mean, var;
-	double array[100000][2];
-
+	double array[NUM_SAMPLES][2];
 	int input;
-	while(input != -1){
-		cout << "Select 1 to generate new datapoints for part 1, select 2 to run data on existing data, -1 to exit: ";
+
+	while (input != -1)
+	{
+		cout << "Select 1 to generate new datapoints for part 1"
+		     << "select 2 to run data on existing data, -1 to exit: ";
+
 		cin >> input;
-		if(input==1){
-			srand(42);
+
+		if (input == 1)
+		{
+			srand(SEED);
 			
 			cout << "Generating data for mean1_var1." << endl;
-			float meanTemp=1.0;
-			float varTemp=1.0;
+
+			float meanTemp = 1.0;
+			float varTemp  = 1.0;
 			generatePairs(meanTemp,varTemp,array);
 			
 			//Generate mean4_var1
-			meanTemp=4.0;
+			meanTemp = 4.0;
 			generatePairs(meanTemp,varTemp,array);
 		}
-		if(input==2){
+		else if (input == 2)
+		{
 			//Set mean matrix G1
 			MatrixXd meanMatrix_G1(2,1);
 			meanMatrix_G1(0,0)=1.0;
@@ -59,62 +72,77 @@ int main()
 			MatrixXd xVector(2,1);
 			float x,y;
 
-			//keep track of how many are classified to dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+			// keep track of how many are classified to 
+			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
 			int classifiedAs_i = 0;
 			int classifiedAs_j = 0;
 
-			cout << "Runnning first dataset (mean1_var1): " << endl << endl;
-			while(!fin_G1.eof()){
+			cout << "Running first dataset (mean1_var1):\n\n";
+			while (!fin_G1.eof())
+			{
 				fin_G1 >> x >> y;
-				xVector(0,0)=x;
-				xVector(1,0)=y;
+				xVector(0,0) = x;
+				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
 				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0,0.2);
 				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0,0.8);
 
-				float temp = g1Value(0,0)-g2Value(0,0);
+				float temp = g1Value(0,0) - g2Value(0,0);
 
-				if(temp >= 0){
+				if (temp >= 0)
+				{
 					classifiedAs_i++; 
 				}
-				else{
+				else
+				{
 					classifiedAs_j++;
 				}
 
 			}
-			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " << classifiedAs_i << ". G(x) < 0 (Decide y [Incorrectly identified]): " << classifiedAs_j << "." << endl << endl;
+			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
+				 << classifiedAs_i 
+				 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
+				 << classifiedAs_j 
+				 << ".\n\n";
 
-			//keep track of how many are classified to dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+			// keep track of how many are classified to 
+			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
 			classifiedAs_i = 0;
 			classifiedAs_j = 0;
 
-			cout << endl << "Runnning second dataset (mean4_var1): " << endl << endl;
-			while(!fin_G2.eof()){
+			cout << "\nRunning second dataset (mean4_var1):\n\n";
+			
+			while (!fin_G2.eof())
+			{
 				fin_G2 >> x >> y;
 				xVector(0,0)=x;
 				xVector(1,0)=y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G1,1.0,0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector,meanMatrix_G2,1.0,0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
 
 				float temp = g1Value(0,0)-g2Value(0,0);
 
-				if(temp >= 0){
+				if (temp >= 0)
+				{
 					classifiedAs_i++; 
 				}
-				else{
+				else
+				{
 					classifiedAs_j++;
 				}
 
 			}
-			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " << classifiedAs_i << ". G(x) < 0 (Decide y [Correctly identified]): " << classifiedAs_j << "." << endl;
 
+			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
+				 << classifiedAs_i 
+				 << ". G(x) < 0 (Decide y [Correctly identified]): " 
+				 << classifiedAs_j 
+				 << ".\n";
 		}
-
 	}	
-
 }
 
 double ranf(double m){
@@ -151,9 +179,10 @@ float box_muller(float m, float s)	/* normal random variate generator */
 	return( m + y1 * s );
 }
 
-void generatePairs(float mean, float variance, double valuePair[][2]){
+void generatePairs(float mean, float variance, double valuePair[][2])
+{
 	//generate pairs
-	for (int i = 0; i < 100000; ++i)
+	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
 		//Sampling x & y values
 		valuePair[i][0] = box_muller(mean,sqrt(variance));
@@ -171,19 +200,24 @@ void generatePairs(float mean, float variance, double valuePair[][2]){
 	string fileName = "mean"+str1.str()+"_var"+str2.str();
 	fout.open(fileName.c_str());
 
-	for (int i = 0; i < 100000; ++i)
+	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
 		fout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 	fout.close();
 }
 
-void useBayesianClassifier(string dataFile){
+void useBayesianClassifier(string dataFile)
+{
 
 }
 
 //passes input values x_Matrix, mean matrix, variance matrix, and probability P(wi)
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, MatrixXd mean, float variance, float probability){
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, 
+									  MatrixXd mean, 
+									  float variance, 
+									  float probability)
+{
 /*
 	MatrixXd w_i = (1/variance*variance)*mean;
 	cout << (1/variance*variance)*mean << endl;
