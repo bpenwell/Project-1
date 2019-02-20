@@ -33,16 +33,22 @@ int main()
 
 	while (input != "-1")
 	{
-		cout << "Select 1 to generate new datapoints for part 1"
-		     << "select 2 to run data on existing data, -1 to exit: ";
+		cout << endl
+		     << "+===============================================+\n"
+			 << "|Select  1 to generate new datapoints for part 1|\n"
+		     << "|Select  2 to run data on existing data         |\n"
+		     << "|Select -1 to exit                              |\n"
+		     << "+===============================================+\n"
+		     << endl
+		     << "Choice: ";
 
 		cin >> input;
+
+		cout << endl;
 
 		if (input == "1")
 		{
 			srand(SEED);
-			
-			cout << "Generating data for mean1_var1." << endl;
 
 			float meanTemp = 1.0;
 			float varTemp  = 1.0;
@@ -185,6 +191,17 @@ float box_muller(float m, float s)	/* normal random variate generator */
 
 void generatePairs(float mean, float variance, double valuePair[][2])
 {
+	//save pairs to file
+    ostringstream str1; 
+    str1 << mean;
+    ostringstream str2; 
+    str2 << variance;
+
+	ofstream fout;
+	string fileName = "mean"+str1.str()+"_var"+str2.str();
+
+	cout << "Generating data for " << fileName << "." << endl;
+
 	//generate pairs
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
@@ -194,14 +211,6 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
-	//save pairs to file
-    ostringstream str1; 
-    str1 << mean;
-    ostringstream str2; 
-    str2 << variance;
-
-	ofstream fout;
-	string fileName = "mean"+str1.str()+"_var"+str2.str();
 	fout.open(fileName.c_str());
 
 	for (int i = 0; i < NUM_SAMPLES; ++i)
