@@ -41,6 +41,10 @@ int main()
 	string filename_1 = "mean1_var1";
 	string filename_2 = "mean4_var1";
 
+	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
+	float pw_1 = 0.5;
+	float pw_2 = 0.5;
+
 	// mean matrix for class 1
 	VectorXd mu_1(dim);
 	mu_1(0) = 1.0;
@@ -104,7 +108,7 @@ int main()
 			ifstream fin_G2;
 			fin_G2.open(filename_2.c_str());
 
-			MatrixXd xVector(dim, 1);
+			VectorXd xVector(dim, 1);
 			float x, y;
 
 			// keep track of how many are classified to 
@@ -121,8 +125,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, 0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -148,7 +152,7 @@ int main()
 			classifiedAs_i = 0;
 			classifiedAs_j = 0;
 
-			cout << "Running first dataset (" << filename_2 << "):\n\n";
+			cout << "Running second dataset (" << filename_2 << "):\n\n";
 			
 			while (!fin_G2.eof())
 			{
@@ -157,8 +161,8 @@ int main()
 				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, 0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -291,7 +295,7 @@ void useBayesianClassifier(string dataFile)
 
 /**
  * @brief      Takes input values feature vector x, mean mu, standard deviation 
- * 			   sd, and prior probability P(w_i), and performs the discriminate 
+ * 			   sd, and prior probability P(w_i), and performs the discriminant 
  * 			   function.
  *
  * @param[in]  x      The feature vector
@@ -299,7 +303,7 @@ void useBayesianClassifier(string dataFile)
  * @param[in]  sd     The standard deviation
  * @param[in]  prior  The prior probability P(w_i)
  *
- * @return     The result of processing the descriminate function (1D MatrixXd)
+ * @return     The result of processing the discriminant function (1D MatrixXd)
  */
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
