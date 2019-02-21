@@ -19,10 +19,7 @@ float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
 void useBayesianClassifier(string dataFile);
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, 
-									  MatrixXd mean, 
-									  float variance, 
-									  float probability);
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
 
 int main()
 {
@@ -33,16 +30,22 @@ int main()
 
 	while (input != "-1")
 	{
-		cout << "Select 1 to generate new datapoints for part 1"
-		     << "select 2 to run data on existing data, -1 to exit: ";
+		cout << endl
+		     << "+===============================================+\n"
+			 << "|Select  1 to generate new datapoints for part 1|\n"
+		     << "|Select  2 to run data on existing data         |\n"
+		     << "|Select -1 to exit                              |\n"
+		     << "+===============================================+\n"
+		     << endl
+		     << "Choice: ";
 
 		cin >> input;
+
+		cout << endl;
 
 		if (input == "1")
 		{
 			srand(SEED);
-			
-			cout << "Generating data for mean1_var1." << endl;
 
 			float meanTemp = 1.0;
 			float varTemp  = 1.0;
@@ -55,13 +58,14 @@ int main()
 		else if (input == "2")
 		{
 			//Set mean matrix G1
-			MatrixXd meanMatrix_G1(2,1);
-			meanMatrix_G1(0,0)=1.0;
-			meanMatrix_G1(1,0)=1.0;
+			MatrixXd meanMatrix_G1(2, 1);
+			meanMatrix_G1(0, 0) = 1.0;
+			meanMatrix_G1(1, 0) = 1.0;
+
 			//Set mean matrix G2
-			MatrixXd meanMatrix_G2(2,1);
-			meanMatrix_G2(0,0)=4.0;
-			meanMatrix_G2(1,0)=4.0;
+			MatrixXd meanMatrix_G2(2, 1);
+			meanMatrix_G2(0, 0) = 4.0;
+			meanMatrix_G2(1, 0) = 4.0;
 
 			//read from data files
 			ifstream fin_G1;
@@ -69,8 +73,8 @@ int main()
 			ifstream fin_G2;
 			fin_G2.open("mean4_var1");
 
-			MatrixXd xVector(2,1);
-			float x,y;
+			MatrixXd xVector(2, 1);
+			float x, y;
 
 			// keep track of how many are classified to 
 			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
@@ -78,6 +82,7 @@ int main()
 			int classifiedAs_j = 0;
 
 			cout << "Running first dataset (mean1_var1):\n\n";
+
 			while (!fin_G1.eof())
 			{
 				fin_G1 >> x >> y;
@@ -88,7 +93,7 @@ int main()
 				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
 				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
 
-				float temp = g1Value(0,0) - g2Value(0,0);
+				float temp = g1Value(0, 0) - g2Value(0, 0);
 
 				if (temp >= 0)
 				{
@@ -100,6 +105,7 @@ int main()
 				}
 
 			}
+
 			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
 				 << classifiedAs_i 
 				 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
@@ -116,14 +122,14 @@ int main()
 			while (!fin_G2.eof())
 			{
 				fin_G2 >> x >> y;
-				xVector(0,0)=x;
-				xVector(1,0)=y;
+				xVector(0, 0) = x;
+				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
 				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
 				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
 
-				float temp = g1Value(0,0)-g2Value(0,0);
+				float temp = g1Value(0, 0) - g2Value(0, 0);
 
 				if (temp >= 0)
 				{
@@ -185,6 +191,17 @@ float box_muller(float m, float s)	/* normal random variate generator */
 
 void generatePairs(float mean, float variance, double valuePair[][2])
 {
+	//save pairs to file
+    ostringstream str1; 
+    str1 << mean;
+    ostringstream str2; 
+    str2 << variance;
+
+	ofstream fout;
+	string fileName = "mean"+str1.str()+"_var"+str2.str();
+
+	cout << "Generating data for " << fileName << "." << endl;
+
 	//generate pairs
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
@@ -194,14 +211,6 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
-	//save pairs to file
-    ostringstream str1; 
-    str1 << mean;
-    ostringstream str2; 
-    str2 << variance;
-
-	ofstream fout;
-	string fileName = "mean"+str1.str()+"_var"+str2.str();
 	fout.open(fileName.c_str());
 
 	for (int i = 0; i < NUM_SAMPLES; ++i)
@@ -216,29 +225,39 @@ void useBayesianClassifier(string dataFile)
 
 }
 
-//passes input values x_Matrix, mean matrix, variance matrix, and probability P(wi)
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x_Matrix, 
-									  MatrixXd mean, 
-									  float variance, 
-									  float probability)
+/**
+ * @brief      Takes input values feature vector x, mean mu, standard deviation 
+ * 			   sd, and prior probability P(w_i), and performs the discriminate 
+ * 			   function.
+ *
+ * @param[in]  x      { feature vector }
+ * @param[in]  mu     { mean vector }
+ * @param[in]  sd     { standard deviation }
+ * @param[in]  prior  { prior probability P(w_i) }
+ *
+ * @return     { result of processing the descriminate function (1D MatrixXd) }
+ */
+MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
+	MatrixXd xt = x.transpose();
+	MatrixXd mt = mu.transpose();
 /*
-	MatrixXd w_i = (1/variance*variance)*mean;
-	cout << (1/variance*variance)*mean << endl;
-	MatrixXd w_i0 = (-1/2*variance*variance)*mean.transpose()*mean;
+	MatrixXd w_i = (1/sd*sd)*mu;
+	cout << (1/sd*sd)*mu << endl;
+	MatrixXd w_i0 = (-1/2*sd*sd)*mt*mu;
 	float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
 
-	MatrixXd g_i_part1 = w_i.transpose()*x_Matrix;
+	MatrixXd g_i_part1 = w_i.transpose()*x;
 */
-	MatrixXd g_i = (-1/(2*variance))*(x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean);
-	g_i(0,0) += log(probability);
+	MatrixXd g_i = (-1 / (2 * sd * sd)) * ((xt * x) - (2 * mt * x) + (mt * mu));
+	g_i(0, 0) += log(prior);
 	//add + ln(P_wi)
 
-	/*cout << "x_Matrix.transpose()*x_Matrix: " << x_Matrix.transpose()*x_Matrix << endl;
-	cout << "2*mean.transpose()*x_Matrix + mean.transpose()*mean: " << 2*mean.transpose()*x_Matrix + mean.transpose()*mean << endl;
+	/*cout << "xt*x: " << xt*x << endl;
+	cout << "2*mt*x + mt*mu: " << 2*mt*x + mt*mu << endl;
 
-	cout << "(-1/2*variance*variance): " <<(-1/(2*variance*variance)) << endl;
-	cout << "(x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean): " << (x_Matrix.transpose()*x_Matrix - 2*mean.transpose()*x_Matrix + mean.transpose()*mean) << endl;
+	cout << "(-1/2*sd*sd): " <<(-1/(2*sd*sd)) << endl;
+	cout << "(xt*x - 2*mt*x + mt*mu): " << (xt*x - 2*mt*x + mt*mu) << endl;
 	cout << g_i << endl;*/
 	return g_i;
 	//float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
