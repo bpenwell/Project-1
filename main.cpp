@@ -29,7 +29,7 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float p
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
 void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, MatrixXd mu_G1, MatrixXd mu_G2, MatrixXd sigma_G1, MatrixXd sigma_G2, float prior_G1, float prior_G2);
-
+MatrixXd kBound_case3(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2);
 
 int main()
 {
@@ -126,6 +126,11 @@ int main()
 
 			runData(4, filename_1, filename_3, xVector, mu_1, mu_3, sigma_1, sigma_3, pw_1, pw_2);
 
+		}
+		else if (input == "5")
+		{
+			MatrixXd returnValue = kBound_case3(0.5, mu_1, mu_2, sigma_1, sigma_2);
+			cout << "Function K(beta) returns: " << returnValue(0,0) << endl;
 		}
 		else if (input != "-1")
 		{
@@ -368,3 +373,28 @@ MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float 
 
 	return g_i;
 }
+
+MatrixXd kBound_case3(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2){
+	float  p_1 = (beta * (1 - beta)) / 2;
+	MatrixXd p_2 = mu_1 - mu_2;
+	MatrixXd p_3 = ((1-beta) * sigma_1 + beta * sigma_2);
+
+	float p_4 = pow(sigma_1.determinant(), (1 - beta)) - beta * pow(sigma_2.determinant(), beta);
+	float p_5 = 0.5 * log(p_3.determinant()/p_4);
+	//1x1 matrix return
+	MatrixXd part_1 = p_1 * p_2.transpose() * p_3.inverse() * p_2;
+	part_1(0,0) += p_5;
+	return part_1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
