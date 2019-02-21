@@ -28,6 +28,8 @@ void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
+void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, MatrixXd mu_G1, MatrixXd mu_G2, MatrixXd sigma_G1, MatrixXd sigma_G2, float prior_G1, float prior_G2);
+
 
 int main()
 {
@@ -35,6 +37,7 @@ int main()
 	float mean, var;
 	double array[NUM_SAMPLES][2];
 	string input;
+	srand(SEED);
 
 	// number of dimensions for feature vector for each class
 	unsigned dim = 2;
@@ -102,188 +105,26 @@ int main()
 
 		if (input == "1")
 		{
-			srand(SEED);
-
 			genSamples(mu_1, sigma_1, dim, filename_1);
 			genSamples(mu_2, sigma_2, dim, filename_2);
 		}
 		else if (input == "2")
 		{
-			//read from data files
-			ifstream fin_G1;
-			fin_G1.open(filename_1.c_str());
-			ifstream fin_G2;
-			fin_G2.open(filename_2.c_str());
-
 			VectorXd xVector(dim, 1);
-			float x, y;
 
-			// keep track of how many are classified to 
-			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
-			int classifiedAs_i = 0;
-			int classifiedAs_j = 0;
-
-			cout << "Running first dataset (" << filename_1 << "):\n\n";
-
-			while (!fin_G1.eof())
-			{
-				fin_G1 >> x >> y;
-				xVector(0,0) = x;
-				xVector(1,0) = y;
-
-				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
-				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
-
-				float temp = g1Value(0, 0) - g2Value(0, 0);
-
-				if (temp >= 0)
-				{
-					classifiedAs_i++; 
-				}
-				else
-				{
-					classifiedAs_j++;
-				}
-
-			}
-			fin_G1.close();
-
-			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
-				 << classifiedAs_i 
-				 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
-				 << classifiedAs_j 
-				 << ".\n\n";
-
-			// keep track of how many are classified to 
-			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
-			classifiedAs_i = 0;
-			classifiedAs_j = 0;
-
-			cout << "Running second dataset (" << filename_2 << "):\n\n";
-			
-			while (!fin_G2.eof())
-			{
-				fin_G2 >> x >> y;
-				xVector(0, 0) = x;
-				xVector(1, 0) = y;
-
-				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
-				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
-
-				float temp = g1Value(0, 0) - g2Value(0, 0);
-
-				if (temp >= 0)
-				{
-					classifiedAs_i++; 
-				}
-				else
-				{
-					classifiedAs_j++;
-				}
-
-			}
-			fin_G2.close();
-
-			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
-				 << classifiedAs_i 
-				 << ". G(x) < 0 (Decide y [Correctly identified]): " 
-				 << classifiedAs_j 
-				 << ".\n";
+			runData(2, filename_1, filename_2, xVector, mu_1, mu_2, sigma_1, sigma_2, pw_1, pw_2);
 		}
 		else if (input == "3")
-		{
-			srand(SEED);
-	
+		{	
 			genSamples(mu_1, sigma_1, dim, filename_1);
 			genSamples(mu_3, sigma_3, dim, filename_3);
 
 		}
 		else if (input == "4")
 		{
-						//read from data files
-			ifstream fin_G1;
-			fin_G1.open(filename_1.c_str());
-			ifstream fin_G2;
-			fin_G2.open(filename_3.c_str());
-
 			VectorXd xVector(dim, 1);
-			float x, y;
 
-			// keep track of how many are classified to 
-			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
-			int classifiedAs_i = 0;
-			int classifiedAs_j = 0;
-
-			cout << "Running first dataset (" << filename_1 << "):\n\n";
-
-			while (!fin_G1.eof())
-			{
-				fin_G1 >> x >> y;
-				xVector(0,0) = x;
-				xVector(1,0) = y;
-
-				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_1, sigma_1, pw_1);
-				MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_3, sigma_3, pw_2);
-
-				float temp = g1Value(0, 0) - g2Value(0, 0);
-
-				if (temp >= 0)
-				{
-					classifiedAs_i++; 
-				}
-				else
-				{
-					classifiedAs_j++;
-				}
-
-			}
-			fin_G1.close();
-
-			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
-				 << classifiedAs_i 
-				 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
-				 << classifiedAs_j 
-				 << ".\n\n";
-
-			// keep track of how many are classified to 
-			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
-			classifiedAs_i = 0;
-			classifiedAs_j = 0;
-
-			cout << "Running second dataset (" << filename_3 << "):\n\n";
-			
-			while (!fin_G2.eof())
-			{
-				fin_G2 >> x >> y;
-				xVector(0, 0) = x;
-				xVector(1, 0) = y;
-
-				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_1, sigma_1, pw_1);
-				MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_3, sigma_3, pw_2);
-
-				float temp = g1Value(0, 0) - g2Value(0, 0);
-
-				if (temp >= 0)
-				{
-					classifiedAs_i++; 
-				}
-				else
-				{
-					classifiedAs_j++;
-				}
-
-			}
-			fin_G2.close();
-
-			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
-				 << classifiedAs_i 
-				 << ". G(x) < 0 (Decide y [Correctly identified]): " 
-				 << classifiedAs_j 
-				 << ".\n";
+			runData(4, filename_1, filename_3, xVector, mu_1, mu_3, sigma_1, sigma_3, pw_1, pw_2);
 
 		}
 		else if (input != "-1")
@@ -292,6 +133,119 @@ int main()
 		}
 
 	}	
+}
+
+/**
+ * @brief      Passes the input to gain context to which discriminant function to run
+ *
+ * @param[in]  passInput  The passed input
+ * @param[in]  file_G1    The file for discriminant g1
+ * @param[in]  file_G2    The file for discriminant g2
+ * @param[in]  xVector    The x vector
+ * @param[in]  mu_G1      The mu for discriminant g1
+ * @param[in]  mu_G2      The mu for discriminant g2
+ * @param[in]  sigma_G1   The sigma for discriminant g1
+ * @param[in]  sigma_G2   The sigma for discriminant g2
+ * @param[in]  prior_G1   The prior for discriminant g1
+ * @param[in]  prior_G2   The prior for discriminant g2
+ */
+void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, MatrixXd mu_G1, MatrixXd mu_G2, MatrixXd sigma_G1, MatrixXd sigma_G2, float prior_G1, float prior_G2)
+{
+	// keep track of how many are classified to 
+	// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+	
+	ifstream fin_G1;
+	fin_G1.open(file_G1.c_str());
+	ifstream fin_G2;
+	fin_G2.open(file_G2.c_str());
+
+	
+	float x, y;
+
+	int classifiedAs_i = 0;
+	int classifiedAs_j = 0;
+
+	MatrixXd g1Value;
+	MatrixXd g2Value;
+
+	cout << "Running first dataset (" << file_G1 << "):\n\n";
+
+	while (!fin_G1.eof())
+	{
+		fin_G1 >> x >> y;
+		xVector(0,0) = x;
+		xVector(1,0) = y;
+
+		//g1Value & g2Value returns a 1-D array
+		if(passInput == 4)
+		{
+			g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
+			g2Value = quadraticDiscFunc_case3(xVector, mu_G2, sigma_G2, prior_G2);
+		}
+		else if( passInput == 2)
+		{
+			g1Value = linearDiscFunc_case1(xVector, mu_G1, 1.0, prior_G1);
+			g2Value = linearDiscFunc_case1(xVector, mu_G2, 1.0, prior_G2);
+
+		}
+
+		float temp = g1Value(0, 0) - g2Value(0, 0);
+
+		if (temp >= 0)
+		{
+			classifiedAs_i++; 
+		}
+		else
+		{
+			classifiedAs_j++;
+		}
+
+	}
+	fin_G1.close();
+
+	cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
+		 << classifiedAs_i 
+		 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
+		 << classifiedAs_j 
+		 << ".\n\n";
+
+	// keep track of how many are classified to 
+	// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+	classifiedAs_i = 0;
+	classifiedAs_j = 0;
+
+	cout << "Running second dataset (" << file_G2 << "):\n\n";
+	
+	while (!fin_G2.eof())
+	{
+		fin_G2 >> x >> y;
+		xVector(0, 0) = x;
+		xVector(1, 0) = y;
+
+		//g1Value & g2Value returns a 1-D array
+		MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
+		MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_G2, sigma_G2, prior_G2);
+
+		float temp = g1Value(0, 0) - g2Value(0, 0);
+
+		if (temp >= 0)
+		{
+			classifiedAs_i++; 
+		}
+		else
+		{
+			classifiedAs_j++;
+		}
+
+	}
+	fin_G2.close();
+
+	cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
+		 << classifiedAs_i 
+		 << ". G(x) < 0 (Decide y [Correctly identified]): " 
+		 << classifiedAs_j 
+		 << ".\n";
+
 }
 
 double ranf(double m)
