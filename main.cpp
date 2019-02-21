@@ -26,6 +26,7 @@ void genSamples(VectorXd mu_i,
 				unsigned numSamples = NUM_SAMPLES);
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
+MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 
 int main()
 {
@@ -42,8 +43,8 @@ int main()
 	string filename_2 = "mean4_var1";
 
 	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
-	float pw_1 = 0.5;
-	float pw_2 = 0.5;
+	float pw_1 = 0.2;
+	float pw_2 = 0.8;
 
 	// mean matrix for class 1
 	VectorXd mu_1(dim);
@@ -125,8 +126,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, pw_1);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, pw_2);
+				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -161,8 +162,8 @@ int main()
 				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, pw_1);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, pw_2);
+				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -330,6 +331,19 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float p
 	return g_i;
 	//float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
 
+}
+
+MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
+{
+	MatrixXd mt = mu.transpose();
+	MatrixXd w  = (1 / (sd * sd)) * mu;
+	MatrixXd wt  = w.transpose();
+	MatrixXd w0 = ((-1 / (2 * sd * sd)) * (mt * mu));
+	w0(0, 0) += log(prior);
+
+	MatrixXd g_i = (wt * x) + w0;
+
+	return g_i;
 }
 
 //get equation from g1=g2
