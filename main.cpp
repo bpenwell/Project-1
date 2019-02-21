@@ -27,7 +27,7 @@ void genSamples(VectorXd mu_i,
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
-MatrixXd discFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
+MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
 
 int main()
 {
@@ -225,8 +225,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = discFunc_case3(xVector, mu_1, sigma_1, pw_1);
-				MatrixXd g2Value = discFunc_case3(xVector, mu_3, sigma_3, pw_2);
+				MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_1, sigma_1, pw_1);
+				MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_3, sigma_3, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -262,8 +262,8 @@ int main()
 				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = discFunc_case3(xVector, mu_1, sigma_1, pw_1);
-				MatrixXd g2Value = discFunc_case3(xVector, mu_3, sigma_3, pw_2);
+				MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_1, sigma_1, pw_1);
+				MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_3, sigma_3, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -328,40 +328,6 @@ float box_muller(float m, float s)	/* normal random variate generator */
 
 	return( m + y1 * s );
 }
-/*
-void generatePairs(float mean, MatrixXd variance, double valuePair[][2])
-{
-	//save pairs to file
-    ostringstream str1; 
-    str1 << mean;
-    ostringstream str2; 
-    str2 << variance(0,0);
-	ostringstream str3; 
-    str3 << variance(1,1);
-
-	ofstream fout;
-	string fileName = "mean"+str1.str()+"_var"+str2.str()+","+str3.str();
-
-	cout << "Generating data for " << fileName << "." << endl;
-
-	//generate pairs
-	for (int i = 0; i < NUM_SAMPLES; ++i)
-	{
-		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean, sqrt(variance(0,0)));
-		valuePair[i][1] = box_muller(mean, sqrt(variance(1,1)));
-		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
-	}
-
-	fout.open(fileName.c_str());
-
-	for (int i = 0; i < NUM_SAMPLES; ++i)
-	{
-		fout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
-	}
-	fout.close();
-}
-*/
 
 /**
  * @brief      Generates random gaussian samples from a given mean vector, 
@@ -395,15 +361,10 @@ void genSamples(VectorXd mu_i,
     fout.close();
 }
 
-void useBayesianClassifier(string dataFile)
-{
-
-}
-
 /**
  * @brief      Takes input values feature vector x, mean mu, standard deviation 
  * 			   sd, and prior probability P(w_i), and performs the discriminant 
- * 			   function.
+ * 			   function (Case 1).
  *
  * @param[in]  x      The feature vector
  * @param[in]  mu     The mean vector
@@ -412,20 +373,6 @@ void useBayesianClassifier(string dataFile)
  *
  * @return     The result of processing the discriminant function (1D MatrixXd)
  */
-
-/*
-MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
-{
-	MatrixXd xt = x.transpose();
-	MatrixXd mt = mu.transpose();
-
-	MatrixXd g_i = (-1 / (2 * sd * sd)) * ((xt * x) - (2 * mt * x) + (mt * mu));
-	g_i(0, 0) += log(prior);
-	
-	return g_i;
-}
-*/
-
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
 	MatrixXd mt = mu.transpose();
@@ -439,7 +386,19 @@ MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
 	return g_i;
 }
 
-MatrixXd discFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior)
+/**
+ * @brief      Takes input values feature vector x, mean mu, covariance matrix 
+ * 			   sigma, and prior probability P(w_i), and performs the quadratic discriminant 
+ * 			   function (Case 3).
+ *
+ * @param[in]  x      The feature vector
+ * @param[in]  mu     The mean vector
+ * @param[in]  sigma  The covariance matrix
+ * @param[in]  prior  The prior probability P(w_i)
+ *
+ * @return     The result of processing the discriminant function (1D MatrixXd)
+ */
+MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior)
 {
 	MatrixXd xt = x.transpose();
 	MatrixXd mt = mu.transpose();
