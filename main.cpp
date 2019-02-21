@@ -18,6 +18,11 @@ const unsigned int NUM_SAMPLES = 100000;
 float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
+void genSamples(MatrixXd mu_i, 
+				MatrixXd sigma_i, 
+				unsigned numDimensions, 
+				string   filename,
+				unsigned numSamples = NUM_SAMPLES);
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
 
@@ -27,6 +32,37 @@ int main()
 	float mean, var;
 	double array[NUM_SAMPLES][2];
 	string input;
+
+	// number of dimensions for feature vector for each class
+	unsigned dim = 2;
+
+	// the filenames for class 1 and class 2
+	string filename_1 = "mean1_var1";
+	string filename_2 = "mean4_var1";
+
+	// mean matrix for class 1
+	MatrixXd mu_1(dim, 1);
+	mu_1(0, 0) = 1.0;
+	mu_1(1, 0) = 1.0;
+
+	// covariance matrix for class 1
+	MatrixXd sigma_1(dim, dim);
+	sigma_1(0, 0) = 1.0;
+	sigma_1(1, 0) = 1.0;
+	sigma_1(0, 1) = 1.0;
+	sigma_1(1, 1) = 1.0;
+
+	// mean matrix for class 2
+	MatrixXd mu_2(dim, 1);
+	mu_2(0, 0) = 4.0;
+	mu_2(1, 0) = 4.0;
+
+	// covariance matrix for class 2
+	MatrixXd sigma_2(dim, dim);
+	sigma_2(0, 0) = 1.0;
+	sigma_2(1, 0) = 1.0;
+	sigma_2(0, 1) = 1.0;
+	sigma_2(1, 1) = 1.0;
 
 	while (input != "-1")
 	{
@@ -47,13 +83,17 @@ int main()
 		{
 			srand(SEED);
 
-			float meanTemp = 1.0;
-			float varTemp  = 1.0;
-			generatePairs(meanTemp, varTemp, array);
+			// float meanTemp = 1.0;
+			// float varTemp  = 1.0;
+
+			// generatePairs(meanTemp, varTemp, array);
 			
 			//Generate mean4_var1
-			meanTemp = 4.0;
-			generatePairs(meanTemp, varTemp, array);
+			// meanTemp = 4.0;
+			// generatePairs(meanTemp, varTemp, array);
+			
+			genSamples(mu_1, sigma_1, dim, filename_1);
+			genSamples(mu_2, sigma_2, dim, filename_2);
 		}
 		else if (input == "2")
 		{
@@ -155,8 +195,9 @@ int main()
 	}	
 }
 
-double ranf(double m){
-	return (m*rand()/(double)RAND_MAX);
+double ranf(double m)
+{
+	return (m * rand() / (double)RAND_MAX);
 }
 
 //This function was developed by Dr. Everett (Skip) F. Carter J., 
@@ -218,6 +259,38 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 		fout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 	fout.close();
+}
+
+/**
+ * @brief      Generates random gaussian samples from a given mean vector, 
+ * 			   covariance matrix, and number of dimensions of the feature vector
+ *
+ * @param[in]  mu_i           The mean vector
+ * @param[in]  sigma_i        The covariance matrix
+ * @param[in]  numDimensions  The number of dimensions
+ * @param[in]  filename       The filename of the file to save the samples to
+ * @param[in]  numSamples     The number samples to generate
+ * 
+ * @return     None
+ */
+void genSamples(MatrixXd mu_i, 
+				MatrixXd sigma_i, 
+				unsigned numDimensions, 
+				string   filename,
+				unsigned numSamples)
+{
+    ofstream fout(filename.c_str());
+
+    for (int n = 0; n < numSamples; n++)
+    {
+        for (int d = 0; d < numDimensions; d++)
+        {
+            char delimiter = ((d < numDimensions - 1) ? '\t'  : '\n');
+            fout << box_muller(mu_i(d, 0), sqrt(sigma_i(d, d))) << delimiter;
+        }
+    }
+
+    fout.close();
 }
 
 void useBayesianClassifier(string dataFile)
