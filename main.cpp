@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <math.h>
 
+using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using namespace std;
 
@@ -18,13 +19,14 @@ const unsigned int NUM_SAMPLES = 100000;
 float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
-void genSamples(MatrixXd mu_i, 
+void genSamples(VectorXd mu_i, 
 				MatrixXd sigma_i, 
 				unsigned numDimensions, 
 				string   filename,
 				unsigned numSamples = NUM_SAMPLES);
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
+MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 
 int main()
 {
@@ -40,10 +42,14 @@ int main()
 	string filename_1 = "mean1_var1";
 	string filename_2 = "mean4_var1";
 
+	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
+	float pw_1 = 0.2;
+	float pw_2 = 0.8;
+
 	// mean matrix for class 1
-	MatrixXd mu_1(dim, 1);
-	mu_1(0, 0) = 1.0;
-	mu_1(1, 0) = 1.0;
+	VectorXd mu_1(dim);
+	mu_1(0) = 1.0;
+	mu_1(1) = 1.0;
 
 	// covariance matrix for class 1
 	MatrixXd sigma_1(dim, dim);
@@ -53,9 +59,9 @@ int main()
 	sigma_1(1, 1) = 1.0;
 
 	// mean matrix for class 2
-	MatrixXd mu_2(dim, 1);
-	mu_2(0, 0) = 4.0;
-	mu_2(1, 0) = 4.0;
+	VectorXd mu_2(dim);
+	mu_2(0) = 4.0;
+	mu_2(1) = 4.0;
 
 	// covariance matrix for class 2
 	MatrixXd sigma_2(dim, dim);
@@ -97,23 +103,13 @@ int main()
 		}
 		else if (input == "2")
 		{
-			//Set mean matrix G1
-			MatrixXd meanMatrix_G1(2, 1);
-			meanMatrix_G1(0, 0) = 1.0;
-			meanMatrix_G1(1, 0) = 1.0;
-
-			//Set mean matrix G2
-			MatrixXd meanMatrix_G2(2, 1);
-			meanMatrix_G2(0, 0) = 4.0;
-			meanMatrix_G2(1, 0) = 4.0;
-
 			//read from data files
 			ifstream fin_G1;
-			fin_G1.open("mean1_var1");
+			fin_G1.open(filename_1.c_str());
 			ifstream fin_G2;
-			fin_G2.open("mean4_var1");
+			fin_G2.open(filename_2.c_str());
 
-			MatrixXd xVector(2, 1);
+			VectorXd xVector(dim, 1);
 			float x, y;
 
 			// keep track of how many are classified to 
@@ -121,7 +117,7 @@ int main()
 			int classifiedAs_i = 0;
 			int classifiedAs_j = 0;
 
-			cout << "Running first dataset (mean1_var1):\n\n";
+			cout << "Running first dataset (" << filename_1 << "):\n\n";
 
 			while (!fin_G1.eof())
 			{
@@ -130,8 +126,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
+				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -157,7 +153,7 @@ int main()
 			classifiedAs_i = 0;
 			classifiedAs_j = 0;
 
-			cout << "\nRunning second dataset (mean4_var1):\n\n";
+			cout << "Running second dataset (" << filename_2 << "):\n\n";
 			
 			while (!fin_G2.eof())
 			{
@@ -166,8 +162,8 @@ int main()
 				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
+				MatrixXd g1Value = linearDiscFunc_case1(xVector, mu_1, 1.0, pw_1);
+				MatrixXd g2Value = linearDiscFunc_case1(xVector, mu_2, 1.0, pw_2);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -273,7 +269,7 @@ void generatePairs(float mean, float variance, double valuePair[][2])
  * 
  * @return     None
  */
-void genSamples(MatrixXd mu_i, 
+void genSamples(VectorXd mu_i, 
 				MatrixXd sigma_i, 
 				unsigned numDimensions, 
 				string   filename,
@@ -286,7 +282,7 @@ void genSamples(MatrixXd mu_i,
         for (int d = 0; d < numDimensions; d++)
         {
             char delimiter = ((d < numDimensions - 1) ? '\t'  : '\n');
-            fout << box_muller(mu_i(d, 0), sqrt(sigma_i(d, d))) << delimiter;
+            fout << box_muller(mu_i(d), sqrt(sigma_i(d, d))) << delimiter;
         }
     }
 
@@ -300,15 +296,15 @@ void useBayesianClassifier(string dataFile)
 
 /**
  * @brief      Takes input values feature vector x, mean mu, standard deviation 
- * 			   sd, and prior probability P(w_i), and performs the discriminate 
+ * 			   sd, and prior probability P(w_i), and performs the discriminant 
  * 			   function.
  *
- * @param[in]  x      { feature vector }
- * @param[in]  mu     { mean vector }
- * @param[in]  sd     { standard deviation }
- * @param[in]  prior  { prior probability P(w_i) }
+ * @param[in]  x      The feature vector
+ * @param[in]  mu     The mean vector
+ * @param[in]  sd     The standard deviation
+ * @param[in]  prior  The prior probability P(w_i)
  *
- * @return     { result of processing the descriminate function (1D MatrixXd) }
+ * @return     The result of processing the discriminant function (1D MatrixXd)
  */
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
@@ -335,6 +331,19 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float p
 	return g_i;
 	//float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
 
+}
+
+MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
+{
+	MatrixXd mt = mu.transpose();
+	MatrixXd w  = (1 / (sd * sd)) * mu;
+	MatrixXd wt  = w.transpose();
+	MatrixXd w0 = ((-1 / (2 * sd * sd)) * (mt * mu));
+	w0(0, 0) += log(prior);
+
+	MatrixXd g_i = (wt * x) + w0;
+
+	return g_i;
 }
 
 //get equation from g1=g2
