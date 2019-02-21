@@ -27,6 +27,7 @@ void genSamples(VectorXd mu_i,
 void useBayesianClassifier(string dataFile);
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
+MatrixXd discFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
 
 int main()
 {
@@ -54,8 +55,8 @@ int main()
 	// covariance matrix for class 1
 	MatrixXd sigma_1(dim, dim);
 	sigma_1(0, 0) = 1.0;
-	sigma_1(1, 0) = 1.0;
-	sigma_1(0, 1) = 1.0;
+	sigma_1(1, 0) = 0.0;
+	sigma_1(0, 1) = 0.0;
 	sigma_1(1, 1) = 1.0;
 
 	// mean matrix for class 2
@@ -66,8 +67,8 @@ int main()
 	// covariance matrix for class 2
 	MatrixXd sigma_2(dim, dim);
 	sigma_2(0, 0) = 1.0;
-	sigma_2(1, 0) = 1.0;
-	sigma_2(0, 1) = 1.0;
+	sigma_2(1, 0) = 0.0;
+	sigma_2(0, 1) = 0.0;
 	sigma_2(1, 1) = 1.0;
 
 	while (input != "-1")
@@ -342,6 +343,23 @@ MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
 	w0(0, 0) += log(prior);
 
 	MatrixXd g_i = (wt * x) + w0;
+
+	return g_i;
+}
+
+MatrixXd discFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior)
+{
+	MatrixXd xt = x.transpose();
+	MatrixXd mt = mu.transpose();
+	MatrixXd sigma_inv = sigma.inverse();
+	MatrixXd W = -0.5 * sigma_inv;
+	MatrixXd w = sigma_inv * mu;
+	MatrixXd wt  = w.transpose();
+	MatrixXd w0 = (-0.5 * mt * sigma_inv * mu);
+	w0(0, 0) -= (0.5 * log(sigma.determinant()));
+	w0(0, 0) += log(prior);
+
+	MatrixXd g_i = (xt * W * x) + (wt * x) + w0;
 
 	return g_i;
 }
