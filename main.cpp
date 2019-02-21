@@ -3,7 +3,7 @@
 #include <math.h>
 #include <cstdlib>
 #include <string>
-#include <Eigen/Dense>
+#include "eigen3/Eigen/Dense"
 #include <math.h>
 
 using Eigen::VectorXd;
@@ -42,10 +42,12 @@ int main()
 	// the filenames for class 1 and class 2
 	string filename_1 = "mean1_var1";
 	string filename_2 = "mean4_var1";
+	string filename_3 = "mean4_var4,8";
+
 
 	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
-	float pw_1 = 0.2;
-	float pw_2 = 0.8;
+	float pw_1 = 0.5;
+	float pw_2 = 0.5;
 
 	// mean matrix for class 1
 	VectorXd mu_1(dim);
@@ -70,13 +72,25 @@ int main()
 	sigma_2(1, 0) = 0.0;
 	sigma_2(0, 1) = 0.0;
 	sigma_2(1, 1) = 1.0;
+    
+    VectorXd mu_3(dim);
+    mu_3(0) = 4.0;
+    mu_3(1) = 4.0;
+    
+    MatrixXd sigma_3(dim,dim);
+    sigma_3(0, 0) = 4.0;
+    sigma_3(0, 1) = 0.0;
+    sigma_3(1, 0) = 0.0;
+    sigma_3(1, 1) = 8.0;
 
 	while (input != "-1")
 	{
 		cout << endl
 		     << "+===============================================+\n"
 			 << "|Select  1 to generate new datapoints for part 1|\n"
-		     << "|Select  2 to run data on existing data         |\n"
+		     << "|Select  2 to run data on part 1 data           |\n"
+             << "|Select  3 to generate new datapoints for part 2|\n"
+		     << "|Select  4 to run data on part 2 data           |\n"
 		     << "|Select -1 to exit                              |\n"
 		     << "+===============================================+\n"
 		     << endl
@@ -90,15 +104,6 @@ int main()
 		{
 			srand(SEED);
 
-			// float meanTemp = 1.0;
-			// float varTemp  = 1.0;
-
-			// generatePairs(meanTemp, varTemp, array);
-			
-			//Generate mean4_var1
-			// meanTemp = 4.0;
-			// generatePairs(meanTemp, varTemp, array);
-			
 			genSamples(mu_1, sigma_1, dim, filename_1);
 			genSamples(mu_2, sigma_2, dim, filename_2);
 		}
@@ -142,6 +147,7 @@ int main()
 				}
 
 			}
+			fin_G1.close();
 
 			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
 				 << classifiedAs_i 
@@ -178,6 +184,7 @@ int main()
 				}
 
 			}
+			fin_G2.close();
 
 			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
 				 << classifiedAs_i 
@@ -185,10 +192,105 @@ int main()
 				 << classifiedAs_j 
 				 << ".\n";
 		}
+		else if (input == "3")
+		{
+			srand(SEED);
+	
+			genSamples(mu_1, sigma_1, dim, filename_1);
+			genSamples(mu_3, sigma_3, dim, filename_3);
+
+		}
+		else if (input == "4")
+		{
+						//read from data files
+			ifstream fin_G1;
+			fin_G1.open(filename_1.c_str());
+			ifstream fin_G2;
+			fin_G2.open(filename_3.c_str());
+
+			VectorXd xVector(dim, 1);
+			float x, y;
+
+			// keep track of how many are classified to 
+			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+			int classifiedAs_i = 0;
+			int classifiedAs_j = 0;
+
+			cout << "Running first dataset (" << filename_1 << "):\n\n";
+
+			while (!fin_G1.eof())
+			{
+				fin_G1 >> x >> y;
+				xVector(0,0) = x;
+				xVector(1,0) = y;
+
+				//g1Value & g2Value returns a 1-D array
+				MatrixXd g1Value = discFunc_case3(xVector, mu_1, sigma_1, pw_1);
+				MatrixXd g2Value = discFunc_case3(xVector, mu_3, sigma_3, pw_2);
+
+				float temp = g1Value(0, 0) - g2Value(0, 0);
+
+				if (temp >= 0)
+				{
+					classifiedAs_i++; 
+				}
+				else
+				{
+					classifiedAs_j++;
+				}
+
+			}
+			fin_G1.close();
+
+			cout << "Results: G(x) >= 0 (Decide x [Correctly identified]): " 
+				 << classifiedAs_i 
+				 << ". G(x) < 0 (Decide y [Incorrectly identified]): " 
+				 << classifiedAs_j 
+				 << ".\n\n";
+
+			// keep track of how many are classified to 
+			// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+			classifiedAs_i = 0;
+			classifiedAs_j = 0;
+
+			cout << "Running second dataset (" << filename_3 << "):\n\n";
+			
+			while (!fin_G2.eof())
+			{
+				fin_G2 >> x >> y;
+				xVector(0, 0) = x;
+				xVector(1, 0) = y;
+
+				//g1Value & g2Value returns a 1-D array
+				MatrixXd g1Value = discFunc_case3(xVector, mu_1, sigma_1, pw_1);
+				MatrixXd g2Value = discFunc_case3(xVector, mu_3, sigma_3, pw_2);
+
+				float temp = g1Value(0, 0) - g2Value(0, 0);
+
+				if (temp >= 0)
+				{
+					classifiedAs_i++; 
+				}
+				else
+				{
+					classifiedAs_j++;
+				}
+
+			}
+			fin_G2.close();
+
+			cout << "Results: G(x) >= 0 (Decide x [Incorrectly identified]): " 
+				 << classifiedAs_i 
+				 << ". G(x) < 0 (Decide y [Correctly identified]): " 
+				 << classifiedAs_j 
+				 << ".\n";
+
+		}
 		else if (input != "-1")
 		{
 			cout << "\"" << input << "\" is not a valid command" << endl;
 		}
+
 	}	
 }
 
@@ -226,17 +328,19 @@ float box_muller(float m, float s)	/* normal random variate generator */
 
 	return( m + y1 * s );
 }
-
-void generatePairs(float mean, float variance, double valuePair[][2])
+/*
+void generatePairs(float mean, MatrixXd variance, double valuePair[][2])
 {
 	//save pairs to file
     ostringstream str1; 
     str1 << mean;
     ostringstream str2; 
-    str2 << variance;
+    str2 << variance(0,0);
+	ostringstream str3; 
+    str3 << variance(1,1);
 
 	ofstream fout;
-	string fileName = "mean"+str1.str()+"_var"+str2.str();
+	string fileName = "mean"+str1.str()+"_var"+str2.str()+","+str3.str();
 
 	cout << "Generating data for " << fileName << "." << endl;
 
@@ -244,8 +348,8 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
 		//Sampling x & y values
-		valuePair[i][0] = box_muller(mean, sqrt(variance));
-		valuePair[i][1] = box_muller(mean, sqrt(variance));
+		valuePair[i][0] = box_muller(mean, sqrt(variance(0,0)));
+		valuePair[i][1] = box_muller(mean, sqrt(variance(1,1)));
 		//cout << valuePair[i][0] << '\t' << valuePair[i][1] << endl;
 	}
 
@@ -257,6 +361,7 @@ void generatePairs(float mean, float variance, double valuePair[][2])
 	}
 	fout.close();
 }
+*/
 
 /**
  * @brief      Generates random gaussian samples from a given mean vector, 
@@ -307,32 +412,19 @@ void useBayesianClassifier(string dataFile)
  *
  * @return     The result of processing the discriminant function (1D MatrixXd)
  */
+
+/*
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
 	MatrixXd xt = x.transpose();
 	MatrixXd mt = mu.transpose();
-/*
-	MatrixXd w_i = (1/sd*sd)*mu;
-	cout << (1/sd*sd)*mu << endl;
-	MatrixXd w_i0 = (-1/2*sd*sd)*mt*mu;
-	float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
 
-	MatrixXd g_i_part1 = w_i.transpose()*x;
-*/
 	MatrixXd g_i = (-1 / (2 * sd * sd)) * ((xt * x) - (2 * mt * x) + (mt * mu));
 	g_i(0, 0) += log(prior);
-	//add + ln(P_wi)
-
-	/*cout << "xt*x: " << xt*x << endl;
-	cout << "2*mt*x + mt*mu: " << 2*mt*x + mt*mu << endl;
-
-	cout << "(-1/2*sd*sd): " <<(-1/(2*sd*sd)) << endl;
-	cout << "(xt*x - 2*mt*x + mt*mu): " << (xt*x - 2*mt*x + mt*mu) << endl;
-	cout << g_i << endl;*/
+	
 	return g_i;
-	//float endingPartOfEquation = log(.5); //assumes P(w_i) == P(w_j) therefore -> .5
-
 }
+*/
 
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
@@ -363,6 +455,3 @@ MatrixXd discFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior)
 
 	return g_i;
 }
-
-//get equation from g1=g2
-//should get y=-x 
