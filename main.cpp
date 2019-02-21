@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <math.h>
 
+using Eigen::VectorXd;
 using Eigen::MatrixXd;
 using namespace std;
 
@@ -18,7 +19,7 @@ const unsigned int NUM_SAMPLES = 100000;
 float ranf();
 float box_muller(float m, float s);
 void generatePairs(float mean, float variance, double array[][2]);
-void genSamples(MatrixXd mu_i, 
+void genSamples(VectorXd mu_i, 
 				MatrixXd sigma_i, 
 				unsigned numDimensions, 
 				string   filename,
@@ -41,9 +42,9 @@ int main()
 	string filename_2 = "mean4_var1";
 
 	// mean matrix for class 1
-	MatrixXd mu_1(dim, 1);
-	mu_1(0, 0) = 1.0;
-	mu_1(1, 0) = 1.0;
+	VectorXd mu_1(dim);
+	mu_1(0) = 1.0;
+	mu_1(1) = 1.0;
 
 	// covariance matrix for class 1
 	MatrixXd sigma_1(dim, dim);
@@ -53,9 +54,9 @@ int main()
 	sigma_1(1, 1) = 1.0;
 
 	// mean matrix for class 2
-	MatrixXd mu_2(dim, 1);
-	mu_2(0, 0) = 4.0;
-	mu_2(1, 0) = 4.0;
+	VectorXd mu_2(dim);
+	mu_2(0) = 4.0;
+	mu_2(1) = 4.0;
 
 	// covariance matrix for class 2
 	MatrixXd sigma_2(dim, dim);
@@ -263,7 +264,7 @@ void generatePairs(float mean, float variance, double valuePair[][2])
  * 
  * @return     None
  */
-void genSamples(MatrixXd mu_i, 
+void genSamples(VectorXd mu_i, 
 				MatrixXd sigma_i, 
 				unsigned numDimensions, 
 				string   filename,
@@ -276,7 +277,7 @@ void genSamples(MatrixXd mu_i,
         for (int d = 0; d < numDimensions; d++)
         {
             char delimiter = ((d < numDimensions - 1) ? '\t'  : '\n');
-            fout << box_muller(mu_i(d, 0), sqrt(sigma_i(d, d))) << delimiter;
+            fout << box_muller(mu_i(d), sqrt(sigma_i(d, d))) << delimiter;
         }
     }
 
