@@ -97,23 +97,13 @@ int main()
 		}
 		else if (input == "2")
 		{
-			//Set mean matrix G1
-			MatrixXd meanMatrix_G1(2, 1);
-			meanMatrix_G1(0, 0) = 1.0;
-			meanMatrix_G1(1, 0) = 1.0;
-
-			//Set mean matrix G2
-			MatrixXd meanMatrix_G2(2, 1);
-			meanMatrix_G2(0, 0) = 4.0;
-			meanMatrix_G2(1, 0) = 4.0;
-
 			//read from data files
 			ifstream fin_G1;
-			fin_G1.open("mean1_var1");
+			fin_G1.open(filename_1.c_str());
 			ifstream fin_G2;
-			fin_G2.open("mean4_var1");
+			fin_G2.open(filename_2.c_str());
 
-			MatrixXd xVector(2, 1);
+			MatrixXd xVector(dim, 1);
 			float x, y;
 
 			// keep track of how many are classified to 
@@ -121,7 +111,7 @@ int main()
 			int classifiedAs_i = 0;
 			int classifiedAs_j = 0;
 
-			cout << "Running first dataset (mean1_var1):\n\n";
+			cout << "Running first dataset (" << filename_1 << "):\n\n";
 
 			while (!fin_G1.eof())
 			{
@@ -130,8 +120,8 @@ int main()
 				xVector(1,0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, 0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, 0.8);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -157,7 +147,7 @@ int main()
 			classifiedAs_i = 0;
 			classifiedAs_j = 0;
 
-			cout << "\nRunning second dataset (mean4_var1):\n\n";
+			cout << "Running first dataset (" << filename_2 << "):\n\n";
 			
 			while (!fin_G2.eof())
 			{
@@ -166,8 +156,8 @@ int main()
 				xVector(1, 0) = y;
 
 				//g1Value & g2Value returns a 1-D array
-				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G1, 1.0, 0.2);
-				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, meanMatrix_G2, 1.0, 0.8);
+				MatrixXd g1Value = disriminantfunction_Case1_G1(xVector, mu_1, 1.0, 0.2);
+				MatrixXd g2Value = disriminantfunction_Case1_G1(xVector, mu_2, 1.0, 0.8);
 
 				float temp = g1Value(0, 0) - g2Value(0, 0);
 
@@ -303,12 +293,12 @@ void useBayesianClassifier(string dataFile)
  * 			   sd, and prior probability P(w_i), and performs the discriminate 
  * 			   function.
  *
- * @param[in]  x      { feature vector }
- * @param[in]  mu     { mean vector }
- * @param[in]  sd     { standard deviation }
- * @param[in]  prior  { prior probability P(w_i) }
+ * @param[in]  x      The feature vector
+ * @param[in]  mu     The mean vector
+ * @param[in]  sd     The standard deviation
+ * @param[in]  prior  The prior probability P(w_i)
  *
- * @return     { result of processing the descriminate function (1D MatrixXd) }
+ * @return     The result of processing the descriminate function (1D MatrixXd)
  */
 MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float prior)
 {
