@@ -368,21 +368,3 @@ MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float 
 
 	return g_i;
 }
-
-
-MatrixXd minDistClassifier_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior)
-{
-	// MatrixXd xt = x.transpose();
-	// MatrixXd mt = mu.transpose();
-	// MatrixXd sigma_inv = sigma.inverse();
-	// MatrixXd W = -0.5 * sigma_inv;
-	// MatrixXd w = sigma_inv * mu;
-	// MatrixXd wt  = w.transpose();
-	// MatrixXd w0 = (-0.5 * mt * sigma_inv * mu);
-	// w0(0, 0) -= (0.5 * log(sigma.determinant()));
-	// w0(0, 0) += log(prior);
-
-	// MatrixXd g_i = (xt * W * x) + (wt * x) + w0;
-
-	return g_i;
-}
