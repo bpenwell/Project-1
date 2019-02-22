@@ -29,7 +29,7 @@ MatrixXd disriminantfunction_Case1_G1(MatrixXd x, MatrixXd mu, float sd, float p
 MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
 void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, MatrixXd mu_G1, MatrixXd mu_G2, MatrixXd sigma_G1, MatrixXd sigma_G2, float prior_G1, float prior_G2);
-MatrixXd kBound_case3(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2);
+MatrixXd kBound(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2);
 
 int main()
 {
@@ -49,8 +49,8 @@ int main()
 
 
 	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
-	float pw_1 = 0.5;
-	float pw_2 = 0.5;
+	float pw_1 = 0.2;
+	float pw_2 = 0.8;
 
 	// mean matrix for class 1
 	VectorXd mu_1(dim);
@@ -89,13 +89,16 @@ int main()
 	while (input != "-1")
 	{
 		cout << endl
-		     << "+===============================================+\n"
-			 << "|Select  1 to generate new datapoints for part 1|\n"
-		     << "|Select  2 to run data on part 1 data           |\n"
-             << "|Select  3 to generate new datapoints for part 2|\n"
-		     << "|Select  4 to run data on part 2 data           |\n"
-		     << "|Select -1 to exit                              |\n"
-		     << "+===============================================+\n"
+		     << "+==============================================================+\n"
+			 << "|Select  1 to generate new datapoints for part 1               |\n"
+		     << "|Select  2 to run data on part 1 data                          |\n"
+             << "|Select  3 to generate new datapoints for part 2               |\n"
+		     << "|Select  4 to run data on part 2 data                          |\n"
+		     << "|Select  5 to calculate Bhattacharyya bound for part 1         |\n"
+		     << "|Select  6 to calculate Bhattacharyya bound for part 2 & 3     |\n"
+		     << "|Select  7 to run part 2 data with minimum-distance classifier |\n"
+		     << "|Select -1 to exit                                             |\n"
+		     << "+==============================================================+\n"
 		     << endl
 		     << "Choice: ";
 
@@ -129,8 +132,15 @@ int main()
 		}
 		else if (input == "5")
 		{
-			MatrixXd returnValue = kBound_case3(0.5, mu_1, mu_2, sigma_1, sigma_2);
-			cout << "Function K(beta) returns: " << returnValue(0,0) << endl;
+			float beta = 0.5;
+			MatrixXd returnValue = kBound(beta, mu_1, mu_2, sigma_1, sigma_2);
+			cout << "Function K(beta = " << beta << ") returns: " << returnValue(0,0) << endl;
+		}
+		else if (input == "6")
+		{
+			float beta = 0.5;
+			MatrixXd returnValue = kBound(beta, mu_1, mu_3, sigma_1, sigma_3);
+			cout << "Function K(beta = " << beta << ") returns: " << returnValue(0,0) << endl;
 		}
 		else if (input != "-1")
 		{
@@ -164,7 +174,8 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 	ifstream fin_G2;
 	fin_G2.open(file_G2.c_str());
 
-	
+	int missClassified = 0;
+
 	float x, y;
 
 	int classifiedAs_i = 0;
@@ -173,7 +184,8 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 	MatrixXd g1Value;
 	MatrixXd g2Value;
 
-	cout << "Running first dataset (" << file_G1 << "):\n\n";
+	cout << "Running first dataset (" << file_G1 << "):\n";
+	cout << "(prior_1 = " << prior_G1 << " | prior_2 = " << prior_G2 << ")" << endl;
 
 	while (!fin_G1.eof())
 	{
@@ -191,7 +203,6 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 		{
 			g1Value = linearDiscFunc_case1(xVector, mu_G1, 1.0, prior_G1);
 			g2Value = linearDiscFunc_case1(xVector, mu_G2, 1.0, prior_G2);
-
 		}
 
 		float temp = g1Value(0, 0) - g2Value(0, 0);
@@ -216,6 +227,7 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 
 	// keep track of how many are classified to 
 	// dataset G1 (mean=1,var=1) vs dataset G2 (mean=4,var=1)
+ 	missClassified += classifiedAs_j;
 	classifiedAs_i = 0;
 	classifiedAs_j = 0;
 
@@ -228,9 +240,16 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 		xVector(1, 0) = y;
 
 		//g1Value & g2Value returns a 1-D array
-		MatrixXd g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
-		MatrixXd g2Value = quadraticDiscFunc_case3(xVector, mu_G2, sigma_G2, prior_G2);
-
+		if(passInput == 4)
+		{
+			g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
+			g2Value = quadraticDiscFunc_case3(xVector, mu_G2, sigma_G2, prior_G2);
+		}
+		else if( passInput == 2)
+		{
+			g1Value = linearDiscFunc_case1(xVector, mu_G1, 1.0, prior_G1);
+			g2Value = linearDiscFunc_case1(xVector, mu_G2, 1.0, prior_G2);
+		}
 		float temp = g1Value(0, 0) - g2Value(0, 0);
 
 		if (temp >= 0)
@@ -250,6 +269,10 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 		 << ". G(x) < 0 (Decide y [Correctly identified]): " 
 		 << classifiedAs_j 
 		 << ".\n";
+	
+	missClassified += classifiedAs_i;
+
+	cout << "Total number of misclassified datapoints: " << missClassified << endl;
 
 }
 
@@ -374,18 +397,20 @@ MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float 
 	return g_i;
 }
 
-MatrixXd kBound_case3(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2){
+MatrixXd kBound(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2){
 	float  p_1 = (beta * (1 - beta)) / 2;
 	MatrixXd p_2 = mu_1 - mu_2;
 	MatrixXd p_3 = ((1-beta) * sigma_1 + beta * sigma_2);
 
-	float p_4 = pow(sigma_1.determinant(), (1 - beta)) - beta * pow(sigma_2.determinant(), beta);
+	float p_4 = pow(sigma_1.determinant(), (1 - beta)) * pow(sigma_2.determinant(), beta);
 	float p_5 = 0.5 * log(p_3.determinant()/p_4);
 	//1x1 matrix return
 	MatrixXd part_1 = p_1 * p_2.transpose() * p_3.inverse() * p_2;
 	part_1(0,0) += p_5;
 	return part_1;
 }
+
+//MatrixXd minimumDistanceDiscFunc()
 
 
 
