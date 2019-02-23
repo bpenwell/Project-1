@@ -90,16 +90,16 @@ int main()
 	while (input != "-1")
 	{
 		cout << endl
-		     << "+==============================================================+\n"
-			 << "|Select  1 to generate new datapoints for part 1               |\n"
-		     << "|Select  2 to run data on part 1 data                          |\n"
-             << "|Select  3 to generate new datapoints for part 2               |\n"
-		     << "|Select  4 to run data on part 2 data                          |\n"
-		     << "|Select  5 to calculate Bhattacharyya bound for part 1         |\n"
-		     << "|Select  6 to calculate Bhattacharyya bound for part 2 & 3     |\n"
-		     << "|Select  7 to run part 2 data with minimum-distance classifier |\n"
-		     << "|Select -1 to exit                                             |\n"
-		     << "+==============================================================+\n"
+		     << "+=========================================================================+\n"
+			 << "|Select  1 to generate new datapoints for part 1                          |\n"
+		     << "|Select  2 to run data on part 1 data                                     |\n"
+             << "|Select  3 to generate new datapoints for part 2                          |\n"
+		     << "|Select  4 to run data on part 2 data                                     |\n"
+		     << "|Select  5 to calculate Bhattacharyya & Chernoff bound for part 1         |\n"
+		     << "|Select  6 to calculate Bhattacharyya & Chernoff bound for part 2 & 3     |\n"
+		     << "|Select  7 to run part 2 data with minimum-distance classifier            |\n"
+		     << "|Select -1 to exit                                                        |\n"
+		     << "+=========================================================================+\n"
 		     << endl
 		     << "Choice: ";
 
@@ -135,13 +135,41 @@ int main()
 		{
 			float beta = 0.5;
 			MatrixXd returnValue = kBound(beta, mu_1, mu_2, sigma_1, sigma_2);
-			cout << "Function K(beta = " << beta << ") returns: " << returnValue(0,0) << endl;
+			cout << "Bhattacharyya bound (beta = " << beta << ") returns: " << exp(-returnValue(0,0)) << endl;
+			
+			float minError = 1000;
+			float minIndex;
+			for(float i=0.001;i<1;i+=0.001)
+			{
+				beta = i;
+				MatrixXd returnValue = kBound(beta, mu_1, mu_2, sigma_1, sigma_2);
+				if(exp(-returnValue(0,0)) < minError){
+					minError = exp(-returnValue(0,0));
+					minIndex = i;
+				}
+
+			}
+			cout << "Chernoff bound (optimal beta = " << minIndex << ") returns: " << minError << endl;
+
 		}
 		else if (input == "6")
 		{
 			float beta = 0.5;
 			MatrixXd returnValue = kBound(beta, mu_1, mu_3, sigma_1, sigma_3);
-			cout << "Function K(beta = " << beta << ") returns: " << returnValue(0,0) << endl;
+			cout << "Bhattacharyya bound (beta = " << beta << ") returns: " << exp(-returnValue(0,0)) << endl;
+
+			float minError = 1000;
+			float minIndex;
+			for(float i=0.001;i<1;i+=0.001)
+			{
+				beta = i;
+				MatrixXd returnValue = kBound(beta, mu_1, mu_3, sigma_1, sigma_3);
+				if(exp(-returnValue(0,0)) < minError){
+					minError = exp(-returnValue(0,0));
+					minIndex = i;
+				}
+			}
+			cout << "Chernoff bound (optimal beta = " << minIndex << ") returns: " << minError << endl;
 		}
 		else if (input == "7"){
 			VectorXd xVector(dim, 1);
