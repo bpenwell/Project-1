@@ -30,6 +30,7 @@ MatrixXd linearDiscFunc_case1(MatrixXd x, MatrixXd mu, float sd, float prior);
 MatrixXd quadraticDiscFunc_case3(MatrixXd x, MatrixXd mu, MatrixXd sigma, float prior);
 void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, MatrixXd mu_G1, MatrixXd mu_G2, MatrixXd sigma_G1, MatrixXd sigma_G2, float prior_G1, float prior_G2);
 MatrixXd kBound(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, MatrixXd sigma_2);
+MatrixXd minimumDistanceDiscFunc(MatrixXd x, MatrixXd mu);
 
 int main()
 {
@@ -49,8 +50,8 @@ int main()
 
 
 	// the prior probabilities for class 1 (P(w_1)) and class 2 (P(w_2))
-	float pw_1 = 0.2;
-	float pw_2 = 0.8;
+	float pw_1 = 0.5;
+	float pw_2 = 0.5;
 
 	// mean matrix for class 1
 	VectorXd mu_1(dim);
@@ -142,6 +143,11 @@ int main()
 			MatrixXd returnValue = kBound(beta, mu_1, mu_3, sigma_1, sigma_3);
 			cout << "Function K(beta = " << beta << ") returns: " << returnValue(0,0) << endl;
 		}
+		else if (input == "7"){
+			VectorXd xVector(dim, 1);
+
+			runData(7, filename_1, filename_3, xVector, mu_1, mu_3, sigma_1, sigma_3, pw_1, pw_2);
+		}
 		else if (input != "-1")
 		{
 			cout << "\"" << input << "\" is not a valid command" << endl;
@@ -185,7 +191,9 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 	MatrixXd g2Value;
 
 	cout << "Running first dataset (" << file_G1 << "):\n";
-	cout << "(prior_1 = " << prior_G1 << " | prior_2 = " << prior_G2 << ")" << endl;
+	if(passInput != 7){
+		cout << "(prior_1 = " << prior_G1 << " | prior_2 = " << prior_G2 << ")" << endl;
+	}
 
 	while (!fin_G1.eof())
 	{
@@ -194,6 +202,11 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 		xVector(1,0) = y;
 
 		//g1Value & g2Value returns a 1-D array
+		if(passInput == 7)
+		{
+			g1Value = minimumDistanceDiscFunc(xVector, mu_G1);
+			g2Value = minimumDistanceDiscFunc(xVector, mu_G2);
+		}
 		if(passInput == 4)
 		{
 			g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
@@ -240,6 +253,11 @@ void runData(int passInput, string file_G1, string file_G2, VectorXd xVector, Ma
 		xVector(1, 0) = y;
 
 		//g1Value & g2Value returns a 1-D array
+		if(passInput == 7)
+		{
+			g1Value = minimumDistanceDiscFunc(xVector, mu_G1);
+			g2Value = minimumDistanceDiscFunc(xVector, mu_G2);
+		}
 		if(passInput == 4)
 		{
 			g1Value = quadraticDiscFunc_case3(xVector, mu_G1, sigma_G1, prior_G1);
@@ -410,16 +428,13 @@ MatrixXd kBound(float beta, MatrixXd mu_1, MatrixXd mu_2, MatrixXd sigma_1, Matr
 	return part_1;
 }
 
-//MatrixXd minimumDistanceDiscFunc()
+MatrixXd minimumDistanceDiscFunc(MatrixXd x, MatrixXd mu)
+{
+	//g(x) = - || x - mu_i || ^ 2
+	//Equal to: (x-mu_i).transpose * (x-mu_i)
 
-
-
-
-
-
-
-
-
-
-
-
+	MatrixXd euclideanNorm = (x - mu).transpose() * (x - mu);
+	float flipSign = euclideanNorm(0,0);
+	euclideanNorm(0,0) = -flipSign;
+	return euclideanNorm;
+}
