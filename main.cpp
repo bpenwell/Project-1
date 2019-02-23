@@ -139,16 +139,19 @@ int main()
 			
 			float minError = 1000;
 			float minIndex;
+			ofstream fout;
+			fout.open("chernoffPart1Data");
 			for(float i=0.001;i<1;i+=0.001)
 			{
 				beta = i;
 				MatrixXd returnValue = kBound(beta, mu_1, mu_2, sigma_1, sigma_2);
+				fout << i << " " << exp(-returnValue(0,0)) << endl;
 				if(exp(-returnValue(0,0)) < minError){
 					minError = exp(-returnValue(0,0));
 					minIndex = i;
 				}
-
 			}
+			fout.close();
 			cout << "Chernoff bound (optimal beta = " << minIndex << ") returns: " << minError << endl;
 
 		}
@@ -160,15 +163,20 @@ int main()
 
 			float minError = 1000;
 			float minIndex;
+			ofstream fout;
+			fout.open("chernoffPart2&3Data");
+
 			for(float i=0.001;i<1;i+=0.001)
 			{
 				beta = i;
 				MatrixXd returnValue = kBound(beta, mu_1, mu_3, sigma_1, sigma_3);
+				fout << i << " " << exp(-returnValue(0,0)) << endl;
 				if(exp(-returnValue(0,0)) < minError){
 					minError = exp(-returnValue(0,0));
 					minIndex = i;
 				}
 			}
+			fout.close();
 			cout << "Chernoff bound (optimal beta = " << minIndex << ") returns: " << minError << endl;
 		}
 		else if (input == "7"){
